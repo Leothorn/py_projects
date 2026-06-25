@@ -19,13 +19,27 @@ canvas{width:100%;height:100%;touch-action:none}.hud{position:fixed;inset:0;poin
   <div class="card enemy">ENEMY <span id="eh">100</span><div class="bar"><div id="ef" class="fill"></div></div><div class="meta">Fleet <span id="et">0</span>/10 · Defence <span id="ed">0</span> · Transfer <span id="ea">0</span></div></div>
  </div>
  <div id="helpPanel" class="help"><b>Chemical launch:</b> drag to preview and commit a circular or elliptical prograde/retrograde parking orbit.<br><b>Collector deployment:</b> after booster separation, the satellite unfurls radiation collectors and begins charging its battery.<br><b>Defence mode:</b> stored electricity powers tracking and weapon shots.<br><b>Transfer mode:</b> weapons shut down; collector output powers electric orbit-raising, transfer injection and capture. Reaction mass is finite and does not recharge.<br><b>Transfer preview:</b> tap once to see trajectory, energy and reaction-mass cost; tap again to commit.</div>
- <div id="msg" class="msg">Drag from your planet to preview an orbit</div>
+ <div id="msg" class="msg">Loading orbital simulation…</div>
  <div class="buttons"><button id="helpBtn" aria-expanded="false">Help</button><button id="reset">Restart</button></div>
 </div>
 <script src="https://cdn.jsdelivr.net/gh/Leothorn/py_projects@5a2b4094b61765484ebcc1a8b31bdfac075d39a3/Storbitz/runtime-1.js"></script>
 <script src="https://cdn.jsdelivr.net/gh/Leothorn/py_projects@5a2b4094b61765484ebcc1a8b31bdfac075d39a3/Storbitz/runtime-2.js"></script>
 <script src="https://cdn.jsdelivr.net/gh/Leothorn/py_projects@5a2b4094b61765484ebcc1a8b31bdfac075d39a3/Storbitz/runtime-3.js"></script>
 <script src="https://cdn.jsdelivr.net/gh/Leothorn/py_projects@5a2b4094b61765484ebcc1a8b31bdfac075d39a3/Storbitz/runtime-4.js"></script>
-<script>eval(window.__STORBITZ_SOURCE);delete window.__STORBITZ_SOURCE;</script>
+<script>
+(()=>{
+ const status=document.getElementById('msg');
+ if(!window.__STORBITZ_SOURCE){status.textContent='Runtime failed to load. Refresh the page.';return}
+ try{
+  const runtime=document.createElement('script');
+  runtime.textContent=window.__STORBITZ_SOURCE;
+  document.body.appendChild(runtime);
+  delete window.__STORBITZ_SOURCE;
+ }catch(error){
+  console.error(error);
+  status.textContent='Simulation failed to start: '+error.message;
+ }
+})();
+</script>
 </body>
 </html>
