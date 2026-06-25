@@ -15,31 +15,16 @@ canvas{width:100%;height:100%;touch-action:none}.hud{position:fixed;inset:0;poin
 <div class="hud">
  <div class="top">
   <div class="card">YOU <span id="ph">100</span><div class="bar"><div id="pf" class="fill"></div></div><div class="meta">Fleet <span id="pt">0</span>/10 · Defence <span id="pd">0</span> · Transfer <span id="pa">0</span></div></div>
-  <div class="card title"><b>STORBITZ</b><br><small>Chemical launch · radiation power · electric transfer</small></div>
+  <div class="card title"><b>STORBITZ</b><br><small>Launch · select orbit point · transfer</small></div>
   <div class="card enemy">ENEMY <span id="eh">100</span><div class="bar"><div id="ef" class="fill"></div></div><div class="meta">Fleet <span id="et">0</span>/10 · Defence <span id="ed">0</span> · Transfer <span id="ea">0</span></div></div>
  </div>
- <div id="helpPanel" class="help"><b>Chemical launch:</b> drag to preview and commit a circular or elliptical prograde/retrograde parking orbit.<br><b>Collector deployment:</b> after booster separation, the satellite unfurls radiation collectors and begins charging its battery.<br><b>Defence mode:</b> stored electricity powers tracking and weapon shots.<br><b>Transfer mode:</b> weapons shut down; collector output powers electric orbit-raising, transfer injection and capture. Reaction mass is finite and does not recharge.<br><b>Transfer preview:</b> tap once to see trajectory, energy and reaction-mass cost; tap again to commit.</div>
- <div id="msg" class="msg">Loading orbital simulation…</div>
+ <div id="helpPanel" class="help"><b>Launch:</b> drag from your planet to choose a circular or elliptical prograde/retrograde orbit.<br><b>Select:</b> tap a friendly satellite to reveal its real orbit.<br><b>Search:</b> tap different points on that orbit. A transfer arc appears only when the exact point produces a valid route to the enemy planet.<br><b>Commit:</b> tap the selected satellite again while a valid arc is visible. It waits for that point, then begins the transfer.</div>
+ <div id="msg" class="msg">Drag from your planet to preview an orbit</div>
  <div class="buttons"><button id="helpBtn" aria-expanded="false">Help</button><button id="reset">Restart</button></div>
 </div>
-<script src="https://cdn.jsdelivr.net/gh/Leothorn/py_projects@5a2b4094b61765484ebcc1a8b31bdfac075d39a3/Storbitz/runtime-1.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/Leothorn/py_projects@5a2b4094b61765484ebcc1a8b31bdfac075d39a3/Storbitz/runtime-2.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/Leothorn/py_projects@5a2b4094b61765484ebcc1a8b31bdfac075d39a3/Storbitz/runtime-3.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/Leothorn/py_projects@5a2b4094b61765484ebcc1a8b31bdfac075d39a3/Storbitz/runtime-4.js"></script>
-<script>
-(()=>{
- const status=document.getElementById('msg');
- if(!window.__STORBITZ_SOURCE){status.textContent='Runtime failed to load. Refresh the page.';return}
- try{
-  const runtime=document.createElement('script');
-  runtime.textContent=window.__STORBITZ_SOURCE;
-  document.body.appendChild(runtime);
-  delete window.__STORBITZ_SOURCE;
- }catch(error){
-  console.error(error);
-  status.textContent='Simulation failed to start: '+error.message;
- }
-})();
-</script>
+<script src="https://cdn.jsdelivr.net/gh/Leothorn/py_projects@f4438e2d13c9e87dc602c23f7a4b512e77c8dcdf/Storbitz/simple-1.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/Leothorn/py_projects@f4438e2d13c9e87dc602c23f7a4b512e77c8dcdf/Storbitz/simple-2.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/Leothorn/py_projects@f4438e2d13c9e87dc602c23f7a4b512e77c8dcdf/Storbitz/simple-3.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/Leothorn/py_projects@f4438e2d13c9e87dc602c23f7a4b512e77c8dcdf/Storbitz/simple-4.js"></script>
 </body>
 </html>
