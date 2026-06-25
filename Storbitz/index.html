@@ -7,272 +7,73 @@
 <style>
 :root{color-scheme:dark;--blue:#58dcff;--pink:#ff6d91;--green:#76f2aa;--gold:#ffd166}
 *{box-sizing:border-box}html,body{margin:0;height:100%;overflow:hidden;background:#050713;color:#eef4ff;font:14px system-ui,-apple-system,Segoe UI,sans-serif}
-canvas{width:100%;height:100%;touch-action:none}.hud{position:fixed;inset:0;pointer-events:none}
-.top{position:absolute;top:10px;left:10px;right:10px;display:flex;justify-content:space-between;gap:10px}
-.card{background:#0d132dcc;border:1px solid #ffffff22;border-radius:12px;padding:9px 12px;min-width:150px;backdrop-filter:blur(8px)}
-.title{text-align:center}.bar{height:8px;background:#ffffff18;border-radius:9px;overflow:hidden;margin-top:5px}.fill{height:100%;background:var(--blue)}
-.enemy .fill{background:var(--pink)}.meta{font-size:11px;color:#aebbd5;margin-top:5px}.help{display:none;position:absolute;left:50%;bottom:66px;transform:translateX(-50%);background:#0d132df2;border:1px solid #ffffff22;border-radius:12px;padding:12px 14px;width:min(535px,calc(100vw - 20px));line-height:1.42;pointer-events:auto;box-shadow:0 18px 50px #0008}.help.open{display:block}
-.msg{position:absolute;left:50%;bottom:86px;transform:translateX(-50%);background:#0d132ddd;border:1px solid #ffffff22;border-radius:20px;padding:7px 12px;white-space:nowrap;max-width:92vw;overflow:hidden;text-overflow:ellipsis}
-.buttons{position:absolute;right:10px;bottom:10px;pointer-events:auto;display:flex;gap:8px}button{background:#ffffff14;color:#fff;border:1px solid #ffffff22;border-radius:9px;padding:10px 12px}
-@media(max-width:680px){.help{bottom:64px;width:calc(100vw - 20px);font-size:11px}.title{display:none}.card{min-width:118px;padding:7px 9px}.msg{bottom:96px;font-size:11px}}
+canvas{width:100%;height:100%;touch-action:none}.hud{position:fixed;inset:0;pointer-events:none}.top{position:absolute;top:10px;left:10px;right:10px;display:flex;justify-content:space-between;gap:10px}.card{background:#0d132dcc;border:1px solid #ffffff22;border-radius:12px;padding:9px 12px;min-width:150px;backdrop-filter:blur(8px)}.title{text-align:center}.bar{height:8px;background:#ffffff18;border-radius:9px;overflow:hidden;margin-top:5px}.fill{height:100%;background:var(--blue)}.enemy .fill{background:var(--pink)}.meta{font-size:11px;color:#aebbd5;margin-top:5px}.help{display:none;position:absolute;left:50%;bottom:66px;transform:translateX(-50%);background:#0d132df2;border:1px solid #ffffff22;border-radius:12px;padding:12px 14px;width:min(560px,calc(100vw - 20px));line-height:1.42;pointer-events:auto;box-shadow:0 18px 50px #0008}.help.open{display:block}.msg{position:absolute;left:50%;bottom:86px;transform:translateX(-50%);background:#0d132ddd;border:1px solid #ffffff22;border-radius:20px;padding:7px 12px;white-space:nowrap;max-width:92vw;overflow:hidden;text-overflow:ellipsis}.buttons{position:absolute;right:10px;bottom:10px;pointer-events:auto;display:flex;gap:8px}button{background:#ffffff14;color:#fff;border:1px solid #ffffff22;border-radius:9px;padding:10px 12px}@media(max-width:680px){.help{bottom:64px;width:calc(100vw - 20px);font-size:11px}.title{display:none}.card{min-width:118px;padding:7px 9px}.msg{bottom:96px;font-size:11px}}
 </style>
 </head>
 <body>
 <canvas id="c"></canvas>
 <div class="hud">
-  <div class="top">
-    <div class="card">YOU <span id="ph">100</span><div class="bar"><div id="pf" class="fill"></div></div><div class="meta">Defence <span id="pd">0</span> · Armed <span id="pa">0</span></div></div>
-    <div class="card title"><b>STORBITZ</b><br><small>Parking orbit → transfer window → capture</small></div>
-    <div class="card enemy">ENEMY <span id="eh">100</span><div class="bar"><div id="ef" class="fill"></div></div><div class="meta">Defence <span id="ed">0</span> · Armed <span id="ea">0</span></div></div>
-  </div>
-  <div id="helpPanel" class="help">
-    <b>1.</b> Drag from your planet to choose parking-orbit altitude and direction. The rocket always launches into your own orbit.<br>
-    <b>2.</b> Tap a green-ring satellite to arm an attack. It waits for a transfer window, performs a prograde burn, coasts under gravity, then attempts a retrograde capture burn near the enemy. Leave it unarmed for defence.
-  </div>
-  <div id="msg" class="msg">Drag from your planet to launch into parking orbit</div>
-  <div class="buttons"><button id="helpBtn" aria-expanded="false">Help</button><button id="reset">Restart</button></div>
+ <div class="top">
+  <div class="card">YOU <span id="ph">100</span><div class="bar"><div id="pf" class="fill"></div></div><div class="meta">Defence <span id="pd">0</span> · Raising <span id="pa">0</span></div></div>
+  <div class="card title"><b>STORBITZ</b><br><small>Park → raise orbit → transfer → capture</small></div>
+  <div class="card enemy">ENEMY <span id="eh">100</span><div class="bar"><div id="ef" class="fill"></div></div><div class="meta">Defence <span id="ed">0</span> · Raising <span id="ea">0</span></div></div>
+ </div>
+ <div id="helpPanel" class="help"><b>Launch:</b> drag from your planet to choose parking-orbit altitude and direction.<br><b>Attack:</b> tap a green-ring satellite. It can target only the opponent planet. It performs several prograde burns at periapsis, raising apoapsis on each orbit. Once the transfer corridor and launch window align, it performs the final escape burn, coasts through both gravity wells, and attempts a retrograde capture burn.<br><b>Defence:</b> leave satellites unselected in green-ring parking orbits.</div>
+ <div id="msg" class="msg">Drag from your planet to launch into parking orbit</div>
+ <div class="buttons"><button id="helpBtn" aria-expanded="false">Help</button><button id="reset">Restart</button></div>
 </div>
 <script>
 (()=>{'use strict';
 const C=document.getElementById('c'),X=C.getContext('2d');
-const ph=document.getElementById('ph'),eh=document.getElementById('eh'),pf=document.getElementById('pf'),ef=document.getElementById('ef');
-const pd=document.getElementById('pd'),pa=document.getElementById('pa'),ed=document.getElementById('ed'),ea=document.getElementById('ea'),msg=document.getElementById('msg'),helpPanel=document.getElementById('helpPanel'),helpBtn=document.getElementById('helpBtn'),resetBtn=document.getElementById('reset');
+const $=id=>document.getElementById(id),ph=$('ph'),eh=$('eh'),pf=$('pf'),ef=$('ef'),pd=$('pd'),pa=$('pa'),ed=$('ed'),ea=$('ea'),msg=$('msg'),helpPanel=$('helpPanel'),helpBtn=$('helpBtn'),resetBtn=$('reset');
 const W=1200,H=700,DT=1/120;
-const P=[
- {x:250,y:390,r:48,mu:1650000,h:100,col:'#58dcff',pad:0},
- {x:950,y:310,r:48,mu:1650000,h:100,col:'#ff6d91',pad:Math.PI}
-];
-const STAGES=[
- {duration:.58,len:30,w:13,col:'#edf4ff'},
- {duration:.62,len:23,w:11,col:'#c8d8f2'},
- {duration:.70,len:17,w:9,col:'#9eb6da'}
-];
+const P=[{x:250,y:390,r:48,mu:1650000,h:100,col:'#58dcff',pad:0},{x:950,y:310,r:48,mu:1650000,h:100,col:'#ff6d91',pad:Math.PI}];
+const STAGES=[{duration:.58,len:30,w:13,col:'#edf4ff'},{duration:.62,len:23,w:11,col:'#c8d8f2'},{duration:.70,len:17,w:9,col:'#9eb6da'}];
 let craft=[],debris=[],particles=[],beams=[],drag=false,dragPoint={x:0,y:0},last=performance.now(),acc=0,aiTimer=2.4,over=false,sc=1,ox=0,oy=0,stars=[];
 for(let i=0;i<180;i++)stars.push([Math.random()*W,Math.random()*H,Math.random()*1.5+.25,Math.random()*.65+.18]);
-
-function resize(){const q=Math.min(devicePixelRatio||1,2);C.width=innerWidth*q;C.height=innerHeight*q;C.q=q;sc=Math.min(innerWidth/W,innerHeight/H);ox=(innerWidth-W*sc)/2;oy=(innerHeight-H*sc)/2}
-onresize=resize;resize();
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
-function world(e){return{x:(e.clientX-ox)/sc,y:(e.clientY-oy)/sc}}
-function note(t){msg.textContent=t}
-function gravity(x,y){let ax=0,ay=0;for(const p of P){let dx=p.x-x,dy=p.y-y,r2=Math.max(dx*dx+dy*dy,(p.r*.55)**2),f=p.mu/Math.pow(r2,1.5);ax+=dx*f;ay+=dy*f}return[ax,ay]}
-function integrate(b,dt){const a=gravity(b.x,b.y);b.vx+=a[0]*dt;b.vy+=a[1]*dt;b.x+=b.vx*dt;b.y+=b.vy*dt}
-function orbitInfo(b,p){const rx=b.x-p.x,ry=b.y-p.y,r=Math.hypot(rx,ry),v2=b.vx*b.vx+b.vy*b.vy,E=v2/2-p.mu/r,h=rx*b.vy-ry*b.vx;if(E>=0)return{bound:false,r,rp:Infinity,ra:Infinity};const e=Math.sqrt(Math.max(0,1+2*E*h*h/(p.mu*p.mu))),a=-p.mu/(2*E),rp=a*(1-e),ra=a*(1+e);return{bound:rp>p.r+5&&ra<260&&r<265,r,rp,ra,e}}
+function resize(){const q=Math.min(devicePixelRatio||1,2);C.width=innerWidth*q;C.height=innerHeight*q;C.q=q;sc=Math.min(innerWidth/W,innerHeight/H);ox=(innerWidth-W*sc)/2;oy=(innerHeight-H*sc)/2}onresize=resize;resize();
+function world(e){return{x:(e.clientX-ox)/sc,y:(e.clientY-oy)/sc}}function note(t){msg.textContent=t}
+function accelLocal(x,y,p){const dx=p.x-x,dy=p.y-y,r2=Math.max(dx*dx+dy*dy,(p.r*.55)**2),f=p.mu/Math.pow(r2,1.5);return[dx*f,dy*f]}
+function accelFull(x,y){let ax=0,ay=0;for(const p of P){const a=accelLocal(x,y,p);ax+=a[0];ay+=a[1]}return[ax,ay]}
+function integrateVerlet(b,dt,anchor=null){const fn=anchor===null?accelFull:(x,y)=>accelLocal(x,y,P[anchor]);let a=fn(b.x,b.y);b.vx+=a[0]*dt*.5;b.vy+=a[1]*dt*.5;b.x+=b.vx*dt;b.y+=b.vy*dt;a=fn(b.x,b.y);b.vx+=a[0]*dt*.5;b.vy+=a[1]*dt*.5}
+function orbitInfo(b,p){const rx=b.x-p.x,ry=b.y-p.y,r=Math.hypot(rx,ry),v2=b.vx*b.vx+b.vy*b.vy,E=v2/2-p.mu/r,h=rx*b.vy-ry*b.vx;if(E>=0)return{bound:false,r,rp:Infinity,ra:Infinity,e:Infinity,h};const e=Math.sqrt(Math.max(0,1+2*E*h*h/(p.mu*p.mu))),a=-p.mu/(2*E),rp=a*(1-e),ra=a*(1+e);return{bound:rp>p.r+5&&ra<470,r,rp,ra,e,h}}
+function radialVelocity(s,p){const rx=s.x-p.x,ry=s.y-p.y,r=Math.hypot(rx,ry);return(rx*s.vx+ry*s.vy)/r}
+function tangentialFrame(s,p){const rx=s.x-p.x,ry=s.y-p.y,r=Math.hypot(rx,ry),h=rx*s.vy-ry*s.vx,dir=h>=0?1:-1;return{r,dir,tx:-ry/r*dir,ty:rx/r*dir}}
 function sparks(x,y,col,n=18){for(let i=0;i<n;i++){const a=Math.random()*Math.PI*2,s=30+Math.random()*130;particles.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:.35+Math.random()*.6,r:1+Math.random()*2.7,col})}}
 function damage(i,n,t){P[i].h=Math.max(0,P[i].h-n);note(t);if(P[i].h<=0&&!over){over=true;setTimeout(()=>alert(i===1?'Victory!':'Defeat!'),40)}}
-
-function launchRocket(owner,orbitR,dir,aiAttack=false){
- const p=P[owner],start=p.pad;
- craft.push({type:'rocket',owner,x:p.x+Math.cos(start)*(p.r+7),y:p.y+Math.sin(start)*(p.r+7),vx:0,vy:0,
-  age:0,stage:0,stageT:0,orbitR,dir,startAngle:start,trail:[],dead:false,aiAttack});
- note(owner===0?'Stage 1 ignition':'Enemy launch detected');
-}
-function launchFromDrag(owner,t){
- const p=P[owner],dx=t.x-p.x,dy=t.y-p.y,len=Math.hypot(dx,dy);
- const orbitR=clamp(88+len*.22,96,145);
- const cross=(P[1-owner].x-p.x)*dy-(P[1-owner].y-p.y)*dx;
- const dir=cross>=0?1:-1;
- launchRocket(owner,orbitR,dir,false);
-}
-function separate(r,stage){
- const backAngle=r.flightAngle+Math.PI;
- debris.push({x:r.x,y:r.y,vx:r.vx+Math.cos(backAngle)*18,vy:r.vy+Math.sin(backAngle)*18,life:2.5,ang:r.flightAngle,spin:(Math.random()-.5)*5,stage});
- sparks(r.x,r.y,r.owner?'#ff9ab4':'#8deaff',8);
- if(r.owner===0)note(`Stage ${stage+1} separated`);
-}
-function updateRocket(r,dt){
- r.age+=dt;r.stageT+=dt;
- const p=P[r.owner],total=STAGES.reduce((s,q)=>s+q.duration,0),u=clamp(r.age/total,0,1);
- const eased=u*u*(3-2*u),angle=r.startAngle+r.dir*(.12+1.05*eased),radius=p.r+7+(r.orbitR-p.r-7)*eased;
- const prevX=r.x,prevY=r.y;
- r.x=p.x+Math.cos(angle)*radius;r.y=p.y+Math.sin(angle)*radius;
- r.vx=(r.x-prevX)/dt;r.vy=(r.y-prevY)/dt;r.flightAngle=Math.atan2(r.vy,r.vx);
- if(r.stageT>=STAGES[r.stage].duration){
-   separate(r,r.stage);r.stage++;r.stageT=0;
-   if(r.stage>=3)deploy(r);
- }
-}
-function deploy(r){
- const p=P[r.owner],rx=r.x-p.x,ry=r.y-p.y,R=Math.hypot(rx,ry),tx=-ry/R*r.dir,ty=rx/R*r.dir,v=Math.sqrt(p.mu/R);
- r.type='sat';r.vx=tx*v;r.vy=ty*v;r.state='defense';r.homeStable=.8;r.enemyStable=0;r.attackTick=0;r.defCd=.2;r.captureFuel=310;r.transferBurn=0;r.transferAge=0;r.burnFlash=0;r.stage=3;
- if(r.aiAttack)r.armDelay=.8+Math.random()*1.1;
- note(r.owner===0?'Satellite deployed into home parking orbit':'Enemy satellite entered parking orbit');
-}
+function launchRocket(owner,orbitR,dir,aiAttack=false){const p=P[owner],start=p.pad;craft.push({type:'rocket',owner,x:p.x+Math.cos(start)*(p.r+7),y:p.y+Math.sin(start)*(p.r+7),vx:0,vy:0,age:0,stage:0,stageT:0,orbitR,dir,startAngle:start,trail:[],dead:false,aiAttack});note(owner===0?'Stage 1 ignition':'Enemy launch detected')}
+function launchFromDrag(owner,t){const p=P[owner],dx=t.x-p.x,dy=t.y-p.y,len=Math.hypot(dx,dy),orbitR=clamp(88+len*.22,96,145),cross=(P[1-owner].x-p.x)*dy-(P[1-owner].y-p.y)*dx;launchRocket(owner,orbitR,cross>=0?1:-1,false)}
+function separate(r,stage){const a=r.flightAngle+Math.PI;debris.push({x:r.x,y:r.y,vx:r.vx+Math.cos(a)*18,vy:r.vy+Math.sin(a)*18,life:2.5,ang:r.flightAngle,spin:(Math.random()-.5)*5,anchor:r.owner});sparks(r.x,r.y,r.owner?'#ff9ab4':'#8deaff',8);if(r.owner===0)note(`Stage ${stage+1} separated`)}
+function updateRocket(r,dt){r.age+=dt;r.stageT+=dt;const p=P[r.owner],total=STAGES.reduce((s,q)=>s+q.duration,0),u=clamp(r.age/total,0,1),e=u*u*(3-2*u),angle=r.startAngle+r.dir*(.12+1.05*e),radius=p.r+7+(r.orbitR-p.r-7)*e,px=r.x,py=r.y;r.x=p.x+Math.cos(angle)*radius;r.y=p.y+Math.sin(angle)*radius;r.vx=(r.x-px)/dt;r.vy=(r.y-py)/dt;r.flightAngle=Math.atan2(r.vy,r.vx);if(r.stageT>=STAGES[r.stage].duration){separate(r,r.stage);r.stage++;r.stageT=0;if(r.stage>=3)deploy(r)}}
+function deploy(r){const p=P[r.owner],f=tangentialFrame(r,p),v=Math.sqrt(p.mu/f.r);r.type='sat';r.vx=f.tx*v;r.vy=f.ty*v;r.state='defense';r.anchor=r.owner;r.enemyStable=0;r.attackTick=0;r.defCd=.2;r.captureFuel=360;r.transferAge=0;r.burnFlash=0;r.stage=3;r.prevRadial=0;r.raisePlan=[];r.raiseIndex=0;r.burnCount=0;r.firstRaise=false;if(r.aiAttack)r.armDelay=.9+Math.random()*1.2;note(r.owner===0?'Satellite deployed into stable home orbit':'Enemy satellite entered parking orbit')}
 function stageLengthFrom(i){let n=10;for(let j=i;j<3;j++)n+=STAGES[j].len;return n}
-
-function candidateClosest(s,dv){
- const owner=s.owner,target=1-owner,p=P[owner],enemy=P[target];
- let x=s.x,y=s.y,vx=s.vx,vy=s.vy;
- const rx=x-p.x,ry=y-p.y,R=Math.hypot(rx,ry),h=rx*vy-ry*vx,dir=h>=0?1:-1,tx=-ry/R*dir,ty=rx/R*dir;
- vx+=tx*dv;vy+=ty*dv;
- let min=1e9,hit=false,time=0;
- for(let i=0;i<960;i++){
-   const a=gravity(x,y),dt=1/120;vx+=a[0]*dt;vy+=a[1]*dt;x+=vx*dt;y+=vy*dt;time+=dt;
-   const d=Math.hypot(x-enemy.x,y-enemy.y);if(d<min)min=d;
-   if(d<enemy.r+4){hit=true;break}
-   if(x<-350||x>W+350||y<-350||y>H+350)break;
- }
- return{min,hit,time};
-}
-function chooseTransferDv(s){
- let best={score:1e9,dv:130,min:1e9};
- for(let dv=65;dv<=225;dv+=8){
-   const q=candidateClosest(s,dv);
-   const score=Math.abs(q.min-108)+(q.hit?500:0);
-   if(score<best.score)best={score,dv,min:q.min};
- }
- return best;
-}
-function armSatellite(s){
- if(s.owner!==0||s.type!=='sat'||(s.state!=='defense'&&s.state!=='armed'))return;
- s.state=s.state==='armed'?'defense':'armed';
- note(s.state==='armed'?'Transfer armed: waiting for tangential launch window':'Transfer cancelled: satellite remains on defence');
-}
-function transferWindow(s){
- const p=P[s.owner],enemy=P[1-s.owner],rx=s.x-p.x,ry=s.y-p.y,R=Math.hypot(rx,ry),h=rx*s.vy-ry*s.vx,dir=h>=0?1:-1;
- const tx=-ry/R*dir,ty=rx/R*dir,dx=enemy.x-s.x,dy=enemy.y-s.y,L=Math.hypot(dx,dy);
- return (tx*dx+ty*dy)/L;
-}
-function executeTransfer(s){
- const p=P[s.owner],rx=s.x-p.x,ry=s.y-p.y,R=Math.hypot(rx,ry),h=rx*s.vy-ry*s.vx,dir=h>=0?1:-1,tx=-ry/R*dir,ty=rx/R*dir;
- const solution=chooseTransferDv(s);
- s.vx+=tx*solution.dv;s.vy+=ty*solution.dv;s.state='transfer';s.transferBurn=solution.dv;s.transferAge=0;s.burnFlash=.35;
- note(`Transfer burn Δv ${Math.round(solution.dv)} · ballistic coast`);
-}
-function attemptCapture(s){
- const enemy=P[1-s.owner],rx=s.x-enemy.x,ry=s.y-enemy.y,R=Math.hypot(rx,ry);
- if(R<enemy.r+16||R>150)return false;
- const radial=(rx*s.vx+ry*s.vy)/R;if(radial>=0)return false;
- const h=rx*s.vy-ry*s.vx,dir=h>=0?1:-1,tx=-ry/R*dir,ty=rx/R*dir,targetV=Math.sqrt(enemy.mu/R)*.94;
- const dvx=tx*targetV-s.vx,dvy=ty*targetV-s.vy,dv=Math.hypot(dvx,dvy);
- if(dv>s.captureFuel)return false;
- s.vx+=dvx;s.vy+=dvy;s.captureFuel-=dv;s.state='capturing';s.burnFlash=.35;s.enemyStable=0;
- note(`Capture burn Δv ${Math.round(dv)}`);
- return true;
-}
-function updateSatellite(s,dt){
- s.age+=dt;if(s.burnFlash)s.burnFlash=Math.max(0,s.burnFlash-dt);
- if(s.armDelay!==undefined){s.armDelay-=dt;if(s.armDelay<=0&&s.state==='defense'){s.state='armed';delete s.armDelay}}
- if(s.state==='armed'&&transferWindow(s)>.992)executeTransfer(s);
- if(s.state==='transfer'){s.transferAge+=dt;attemptCapture(s)}
- integrate(s,dt);
- const own=orbitInfo(s,P[s.owner]),enemy=orbitInfo(s,P[1-s.owner]);
- if(s.state==='capturing'){
-   s.enemyStable=enemy.bound?s.enemyStable+dt:Math.max(0,s.enemyStable-dt*2);
-   if(s.enemyStable>.55){s.state='attack';note(s.owner===0?'Enemy orbit captured: damage online':'Hostile satellite captured your orbit')}
- }
- if(s.state==='attack'){
-   s.attackTick+=dt;if(s.attackTick>.5){s.attackTick=0;damage(1-s.owner,.72,'Orbital damage')}
- }
- if(s.state==='defense'){
-   s.defCd-=dt;
-   if(s.defCd<=0){
-     let target=null,best=108;
-     for(const q of craft){
-       if(q.dead||q.owner===s.owner||q.type!=='sat'||(q.state!=='transfer'&&q.state!=='capturing'&&q.state!=='attack'))continue;
-       const d=Math.hypot(q.x-s.x,q.y-s.y);if(d<best){best=d;target=q}
-     }
-     if(target){beams.push({x1:s.x,y1:s.y,x2:target.x,y2:target.y,life:.16,col:s.owner?'#ff9ab2':'#7be6ff'});sparks(target.x,target.y,s.owner?'#ff9ab2':'#7be6ff',16);target.dead=true;s.defCd=.8;note(s.owner===0?'Defence interception':'Enemy defence intercepted your transfer')}
-     else s.defCd=.12;
-   }
- }
- if((s.state==='defense'||s.state==='armed')&&!own.bound&&s.age>2)s.state='drifting';
- if(s.state==='transfer'&&s.transferAge>12)s.state='drifting';
-}
-function bodyCollisions(b){
- for(let i=0;i<2;i++){
-   const p=P[i],d=Math.hypot(b.x-p.x,b.y-p.y);
-   if(d<p.r+(b.type==='rocket'?4:5)){
-     if(b.type==='rocket'&&b.age<.07&&i===b.owner)continue;
-     const hostile=b.owner!==i,sp=Math.hypot(b.vx,b.vy);sparks(b.x,b.y,b.owner?'#ff7f9d':'#69dcff',hostile?26:14);
-     if(hostile)damage(i,Math.min(26,7+sp*.04),'Transfer impact damage');else damage(i,b.type==='rocket'?4:3,'Launch failure');
-     b.dead=true;return;
-   }
- }
- if(b.age>34||b.x<-360||b.x>W+360||b.y<-360||b.y>H+360)b.dead=true;
-}
-function aiLaunch(){
- const owner=1;
- const defenders=craft.filter(q=>!q.dead&&q.owner===owner&&q.type==='sat'&&q.state==='defense').length;
- const attackers=craft.filter(q=>!q.dead&&q.owner===owner&&q.type==='sat'&&(q.state==='armed'||q.state==='transfer'||q.state==='capturing'||q.state==='attack')).length;
- const aiAttack=defenders>=1||attackers===0;
- const orbitR=98+Math.random()*38,dir=Math.random()<.5?1:-1;
- launchRocket(owner,orbitR,dir,aiAttack);aiTimer=3.5+Math.random()*2.4;
-}
-function update(){
- if(over)return;
- aiTimer-=DT;if(aiTimer<=0)aiLaunch();
- for(const b of craft){
-   if(b.dead)continue;
-   if(b.type==='rocket')updateRocket(b,DT);else updateSatellite(b,DT);
-   b.trail.push([b.x,b.y,1]);if(b.trail.length>32)b.trail.shift();for(const t of b.trail)t[2]-=DT*1.7;
-   bodyCollisions(b);
- }
- for(let i=0;i<craft.length;i++)for(let j=i+1;j<craft.length;j++){const a=craft[i],b=craft[j];if(!a.dead&&!b.dead&&a.owner!==b.owner&&a.type==='sat'&&b.type==='sat'&&Math.hypot(a.x-b.x,a.y-b.y)<11){sparks((a.x+b.x)/2,(a.y+b.y)/2,'#fff',18);a.dead=b.dead=true}}
- craft=craft.filter(b=>!b.dead);
- for(const q of debris){q.life-=DT;q.ang+=q.spin*DT;integrate(q,DT)}debris=debris.filter(q=>q.life>0);
- for(const f of particles){f.life-=DT;f.x+=f.vx*DT;f.y+=f.vy*DT;f.vx*=.99;f.vy*=.99}particles=particles.filter(f=>f.life>0);
- for(const b of beams)b.life-=DT;beams=beams.filter(b=>b.life>0);
- hud();
-}
-function hud(){
- ph.textContent=Math.ceil(P[0].h);eh.textContent=Math.ceil(P[1].h);pf.style.width=P[0].h+'%';ef.style.width=P[1].h+'%';
- pd.textContent=craft.filter(b=>!b.dead&&b.owner===0&&b.type==='sat'&&b.state==='defense').length;
- pa.textContent=craft.filter(b=>!b.dead&&b.owner===0&&b.type==='sat'&&b.state==='armed').length;
- ed.textContent=craft.filter(b=>!b.dead&&b.owner===1&&b.type==='sat'&&b.state==='defense').length;
- ea.textContent=craft.filter(b=>!b.dead&&b.owner===1&&b.type==='sat'&&b.state==='armed').length;
-}
-function drawPlanet(p){
- let glow=X.createRadialGradient(p.x,p.y,p.r*.3,p.x,p.y,p.r*2.1);glow.addColorStop(0,p.col+'44');glow.addColorStop(1,'transparent');X.fillStyle=glow;X.beginPath();X.arc(p.x,p.y,p.r*2.1,0,Math.PI*2);X.fill();
- let gr=X.createRadialGradient(p.x-15,p.y-18,5,p.x,p.y,p.r);gr.addColorStop(0,'#fff');gr.addColorStop(.18,p.col);gr.addColorStop(1,'#18265a');X.fillStyle=gr;X.beginPath();X.arc(p.x,p.y,p.r,0,Math.PI*2);X.fill();
- X.globalAlpha=.18;X.strokeStyle=p.col;for(const r of[96,120,145]){X.beginPath();X.arc(p.x,p.y,r,0,Math.PI*2);X.stroke()}X.globalAlpha=1;
-}
-function drawRocket(b){
- X.save();X.translate(b.x,b.y);X.rotate(b.flightAngle||0);const total=stageLengthFrom(b.stage);let x=-total/2;
- for(let i=b.stage;i<3;i++){const s=STAGES[i];X.fillStyle=s.col;X.fillRect(x,-s.w/2,s.len,s.w);X.strokeStyle='#ffffff44';X.strokeRect(x,-s.w/2,s.len,s.w);x+=s.len}
- X.fillStyle=b.owner?'#ff6d91':'#58dcff';X.beginPath();X.moveTo(x+10,0);X.lineTo(x,-7);X.lineTo(x,7);X.fill();
- const flame=14+Math.random()*10;X.fillStyle='#ffd166';X.beginPath();X.moveTo(-total/2,0);X.lineTo(-total/2-flame,-5);X.lineTo(-total/2-flame*.7,0);X.lineTo(-total/2-flame,5);X.fill();X.restore();
- X.fillStyle='#ffffffaa';X.font='10px system-ui';X.fillText('S'+(b.stage+1),b.x+8,b.y-11);
-}
-function drawSat(s){
- X.save();X.translate(s.x,s.y);X.rotate(Math.atan2(s.vy,s.vx));X.fillStyle=s.owner?'#ffe0e8':'#dff8ff';X.fillRect(-5,-3,10,6);X.fillStyle=s.owner?'#ff6d91':'#58dcff';X.fillRect(-12,-5,6,10);X.fillRect(6,-5,6,10);
- const ring=s.state==='defense'?'#76f2aa':s.state==='armed'?'#ffd166':s.state==='attack'?'#ff9b55':s.state==='capturing'?'#d9a7ff':null;
- if(ring){X.strokeStyle=ring;X.lineWidth=2;X.beginPath();X.arc(0,0,11+(s.state==='armed'?Math.sin(s.age*8)*2:0),0,Math.PI*2);X.stroke()}
- if(s.burnFlash){X.fillStyle='#b7f7ff';X.beginPath();X.moveTo(-6,0);X.lineTo(-19,-4);X.lineTo(-19,4);X.fill()}X.restore();
- if(s.state==='armed'){X.globalAlpha=.28;X.strokeStyle='#ffd166';X.beginPath();X.arc(s.x,s.y,108,0,Math.PI*2);X.stroke();X.globalAlpha=1}
-}
-function drawTransferGuide(){
- X.save();X.globalAlpha=.14;X.strokeStyle='#ffd166';X.lineWidth=2;X.setLineDash([6,12]);
- X.beginPath();X.moveTo(P[0].x+105,P[0].y);X.bezierCurveTo(475,115,725,585,P[1].x-105,P[1].y);X.stroke();X.setLineDash([]);X.restore();
-}
-function previewLaunch(){
- if(!drag)return;
- const p=P[0],dx=dragPoint.x-p.x,dy=dragPoint.y-p.y,len=Math.hypot(dx,dy),orbitR=clamp(88+len*.22,96,145);
- const cross=(P[1].x-p.x)*dy-(P[1].y-p.y)*dx,dir=cross>=0?1:-1,start=p.pad;
- X.strokeStyle='#58dcffaa';X.lineWidth=2.5;X.setLineDash([3,9]);X.beginPath();
- for(let i=0;i<=50;i++){const u=i/50,e=u*u*(3-2*u),a=start+dir*(.12+1.05*e),r=p.r+7+(orbitR-p.r-7)*e,x=p.x+Math.cos(a)*r,y=p.y+Math.sin(a)*r;i?X.lineTo(x,y):X.moveTo(x,y)}
- X.stroke();X.setLineDash([]);X.globalAlpha=.55;X.beginPath();X.arc(p.x,p.y,orbitR,0,Math.PI*2);X.stroke();X.globalAlpha=1;
- note(`Parking orbit ${Math.round(orbitR)} · ${dir>0?'counter-clockwise':'clockwise'}`);
-}
-function draw(){
- X.setTransform(C.q*sc,0,0,C.q*sc,C.q*ox,C.q*oy);X.fillStyle='#050713';X.fillRect(0,0,W,H);
- X.fillStyle='#dfe9ff';for(const s of stars){X.globalAlpha=s[3];X.beginPath();X.arc(s[0],s[1],s[2],0,Math.PI*2);X.fill()}X.globalAlpha=1;
- drawTransferGuide();drawPlanet(P[0]);drawPlanet(P[1]);previewLaunch();
- for(const b of craft){X.strokeStyle=b.owner?'#ff6d9155':'#58dcff55';X.beginPath();for(let i=0;i<b.trail.length;i++){const t=b.trail[i];i?X.lineTo(t[0],t[1]):X.moveTo(t[0],t[1])}X.stroke();b.type==='rocket'?drawRocket(b):drawSat(b)}
- for(const q of debris){X.save();X.translate(q.x,q.y);X.rotate(q.ang);X.fillStyle='#8796af';X.fillRect(-6,-3,12,6);X.restore()}
- for(const f of particles){X.globalAlpha=clamp(f.life*2,0,1);X.fillStyle=f.col;X.beginPath();X.arc(f.x,f.y,f.r,0,Math.PI*2);X.fill()}X.globalAlpha=1;
- for(const b of beams){X.globalAlpha=b.life/.16;X.strokeStyle=b.col;X.lineWidth=2;X.beginPath();X.moveTo(b.x1,b.y1);X.lineTo(b.x2,b.y2);X.stroke()}X.globalAlpha=1;
-}
+function startRaising(s){if(s.type!=='sat'||s.state!=='defense')return;const info=orbitInfo(s,P[s.owner]),base=Math.max(info.ra,info.r);s.raisePlan=[Math.max(185,base+45),270,370].filter(v=>v>base+12);s.raiseIndex=0;s.burnCount=0;s.firstRaise=true;s.raiseDelay=.35;s.state='raising';s.selected=true;note('Target locked: opponent planet · waiting for periapsis burn 1')}
+function cancelRaising(s){if(s.state!=='raising')return;s.state='defense';s.selected=false;note('Orbit raising paused; satellite remains on defence')}
+function raiseBurn(s,targetRa){const p=P[s.owner],f=tangentialFrame(s,p),rp=f.r,a=(rp+targetRa)/2,targetV=Math.sqrt(p.mu*(2/rp-1/a)),vt=s.vx*f.tx+s.vy*f.ty,dv=Math.max(0,targetV-vt);s.vx+=f.tx*dv;s.vy+=f.ty*dv;s.burnFlash=.32;s.burnCount++;sparks(s.x,s.y,s.owner?'#ffb0c4':'#a6f3ff',8);note(`Orbit-raise burn ${s.burnCount}: apoapsis ${Math.round(targetRa)} · Δv ${dv.toFixed(1)}`)}
+function candidateClosest(s,dv){const p=P[s.owner],enemy=P[1-s.owner],f=tangentialFrame(s,p);let b={x:s.x,y:s.y,vx:s.vx+f.tx*dv,vy:s.vy+f.ty*dv},min=1e9,hit=false;for(let i=0;i<2400;i++){integrateVerlet(b,DT,null);const d=Math.hypot(b.x-enemy.x,b.y-enemy.y);min=Math.min(min,d);if(d<enemy.r+4){hit=true;break}if(b.x<-420||b.x>W+420||b.y<-420||b.y>H+420)break}return{min,hit}}
+function chooseInjectionDv(s){let best={score:1e9,dv:35,min:1e9};for(let dv=12;dv<=115;dv+=3){const q=candidateClosest(s,dv),score=Math.abs(q.min-112)+(q.hit?700:0);if(score<best.score)best={score,dv,min:q.min}}return best}
+function transferWindow(s){const p=P[s.owner],enemy=P[1-s.owner],f=tangentialFrame(s,p),dx=enemy.x-s.x,dy=enemy.y-s.y,L=Math.hypot(dx,dy);return(f.tx*dx+f.ty*dy)/L}
+function injectionBurn(s){const f=tangentialFrame(s,P[s.owner]),sol=chooseInjectionDv(s);s.vx+=f.tx*sol.dv;s.vy+=f.ty*sol.dv;s.state='transfer';s.anchor=null;s.transferAge=0;s.burnFlash=.4;s.selected=true;s.burnCount++;note(`Final orbit-raise burn ${s.burnCount}: transfer injection Δv ${sol.dv}`)}
+function attemptCapture(s){const target=1-s.owner,p=P[target],f=tangentialFrame(s,p);if(f.r<p.r+16||f.r>155)return false;const rv=radialVelocity(s,p);if(rv>=0)return false;const targetV=Math.sqrt(p.mu/f.r)*.94,dvx=f.tx*targetV-s.vx,dvy=f.ty*targetV-s.vy,dv=Math.hypot(dvx,dvy);if(dv>s.captureFuel)return false;s.vx+=dvx;s.vy+=dvy;s.captureFuel-=dv;s.state='capturing';s.anchor=target;s.burnFlash=.4;s.enemyStable=0;note(`Retrograde capture burn Δv ${Math.round(dv)}`);return true}
+function updateRaising(s,dt){const p=P[s.owner],rv=radialVelocity(s,p);s.raiseDelay=Math.max(0,(s.raiseDelay||0)-dt);const periapsis=(s.prevRadial<0&&rv>=0)||(s.firstRaise&&s.raiseDelay<=0);if(periapsis){s.firstRaise=false;if(s.raiseIndex<s.raisePlan.length){raiseBurn(s,s.raisePlan[s.raiseIndex++])}else if(transferWindow(s)>.965){injectionBurn(s)}else note('Raised orbit complete · waiting for transfer window')}s.prevRadial=rv}
+function updateSatellite(s,dt){s.age+=dt;if(s.burnFlash)s.burnFlash=Math.max(0,s.burnFlash-dt);if(s.armDelay!==undefined){s.armDelay-=dt;if(s.armDelay<=0&&s.state==='defense'){delete s.armDelay;startRaising(s)}}if(s.state==='raising')updateRaising(s,dt);if(s.state==='transfer'){s.transferAge+=dt;attemptCapture(s)}integrateVerlet(s,dt,s.anchor);if(s.state==='capturing'){const enemy=orbitInfo(s,P[1-s.owner]);s.enemyStable=enemy.bound?s.enemyStable+dt:Math.max(0,s.enemyStable-dt*2);if(s.enemyStable>.5){s.state='attack';s.anchor=1-s.owner;note(s.owner===0?'Opponent orbit captured: damage online':'Hostile satellite captured your orbit')}}if(s.state==='attack'){s.attackTick+=dt;if(s.attackTick>.5){s.attackTick=0;damage(1-s.owner,.72,'Orbital damage')}}if(s.state==='defense'){s.defCd-=dt;if(s.defCd<=0){let target=null,best=110;for(const q of craft){if(q.dead||q.owner===s.owner||q.type!=='sat'||!['transfer','capturing','attack'].includes(q.state))continue;const d=Math.hypot(q.x-s.x,q.y-s.y);if(d<best){best=d;target=q}}if(target){beams.push({x1:s.x,y1:s.y,x2:target.x,y2:target.y,life:.16,col:s.owner?'#ff9ab2':'#7be6ff'});sparks(target.x,target.y,s.owner?'#ff9ab2':'#7be6ff',16);target.dead=true;s.defCd=.8;note(s.owner===0?'Defence interception':'Enemy defence intercepted your transfer')}else s.defCd=.12}}if(s.state==='transfer'&&s.transferAge>24)s.state='drifting'}
+function bodyCollisions(b){for(let i=0;i<2;i++){const p=P[i],d=Math.hypot(b.x-p.x,b.y-p.y);if(d<p.r+(b.type==='rocket'?4:5)){if(b.type==='rocket'&&b.age<.07&&i===b.owner)continue;const hostile=b.owner!==i,sp=Math.hypot(b.vx,b.vy);sparks(b.x,b.y,b.owner?'#ff7f9d':'#69dcff',hostile?26:14);if(hostile)damage(i,Math.min(26,7+sp*.04),'Transfer impact damage');else damage(i,b.type==='rocket'?4:3,'Launch failure');b.dead=true;return}}if((b.state==='transfer'||b.state==='drifting')&&(b.x<-420||b.x>W+420||b.y<-420||b.y>H+420))b.dead=true}
+function aiLaunch(){const owner=1,def=craft.filter(q=>!q.dead&&q.owner===owner&&q.type==='sat'&&q.state==='defense').length,atk=craft.filter(q=>!q.dead&&q.owner===owner&&q.type==='sat'&&['raising','transfer','capturing','attack'].includes(q.state)).length,aiAttack=def>=1||atk===0;launchRocket(owner,98+Math.random()*38,Math.random()<.5?1:-1,aiAttack);aiTimer=4+Math.random()*2.5}
+function update(){if(over)return;aiTimer-=DT;if(aiTimer<=0)aiLaunch();for(const b of craft){if(b.dead)continue;if(b.type==='rocket')updateRocket(b,DT);else updateSatellite(b,DT);b.trail.push([b.x,b.y,1]);if(b.trail.length>34)b.trail.shift();for(const t of b.trail)t[2]-=DT*1.7;bodyCollisions(b)}for(let i=0;i<craft.length;i++)for(let j=i+1;j<craft.length;j++){const a=craft[i],b=craft[j];if(!a.dead&&!b.dead&&a.owner!==b.owner&&a.type==='sat'&&b.type==='sat'&&Math.hypot(a.x-b.x,a.y-b.y)<11){sparks((a.x+b.x)/2,(a.y+b.y)/2,'#fff',18);a.dead=b.dead=true}}craft=craft.filter(b=>!b.dead);for(const q of debris){q.life-=DT;q.ang+=q.spin*DT;integrateVerlet(q,DT,q.anchor)}debris=debris.filter(q=>q.life>0);for(const f of particles){f.life-=DT;f.x+=f.vx*DT;f.y+=f.vy*DT;f.vx*=.99;f.vy*=.99}particles=particles.filter(f=>f.life>0);for(const b of beams)b.life-=DT;beams=beams.filter(b=>b.life>0);hud()}
+function hud(){ph.textContent=Math.ceil(P[0].h);eh.textContent=Math.ceil(P[1].h);pf.style.width=P[0].h+'%';ef.style.width=P[1].h+'%';pd.textContent=craft.filter(b=>!b.dead&&b.owner===0&&b.type==='sat'&&b.state==='defense').length;pa.textContent=craft.filter(b=>!b.dead&&b.owner===0&&b.type==='sat'&&b.state==='raising').length;ed.textContent=craft.filter(b=>!b.dead&&b.owner===1&&b.type==='sat'&&b.state==='defense').length;ea.textContent=craft.filter(b=>!b.dead&&b.owner===1&&b.type==='sat'&&b.state==='raising').length}
+function drawPlanet(p){let glow=X.createRadialGradient(p.x,p.y,p.r*.3,p.x,p.y,p.r*2.1);glow.addColorStop(0,p.col+'44');glow.addColorStop(1,'transparent');X.fillStyle=glow;X.beginPath();X.arc(p.x,p.y,p.r*2.1,0,Math.PI*2);X.fill();let gr=X.createRadialGradient(p.x-15,p.y-18,5,p.x,p.y,p.r);gr.addColorStop(0,'#fff');gr.addColorStop(.18,p.col);gr.addColorStop(1,'#18265a');X.fillStyle=gr;X.beginPath();X.arc(p.x,p.y,p.r,0,Math.PI*2);X.fill();X.globalAlpha=.18;X.strokeStyle=p.col;for(const r of[96,120,145]){X.beginPath();X.arc(p.x,p.y,r,0,Math.PI*2);X.stroke()}X.globalAlpha=1}
+function drawRocket(b){X.save();X.translate(b.x,b.y);X.rotate(b.flightAngle||0);const total=stageLengthFrom(b.stage);let x=-total/2;for(let i=b.stage;i<3;i++){const s=STAGES[i];X.fillStyle=s.col;X.fillRect(x,-s.w/2,s.len,s.w);X.strokeStyle='#ffffff44';X.strokeRect(x,-s.w/2,s.len,s.w);x+=s.len}X.fillStyle=b.owner?'#ff6d91':'#58dcff';X.beginPath();X.moveTo(x+10,0);X.lineTo(x,-7);X.lineTo(x,7);X.fill();const flame=14+Math.random()*10;X.fillStyle='#ffd166';X.beginPath();X.moveTo(-total/2,0);X.lineTo(-total/2-flame,-5);X.lineTo(-total/2-flame*.7,0);X.lineTo(-total/2-flame,5);X.fill();X.restore();X.fillStyle='#ffffffaa';X.font='10px system-ui';X.fillText('S'+(b.stage+1),b.x+8,b.y-11)}
+function drawSat(s){X.save();X.translate(s.x,s.y);X.rotate(Math.atan2(s.vy,s.vx));X.fillStyle=s.owner?'#ffe0e8':'#dff8ff';X.fillRect(-5,-3,10,6);X.fillStyle=s.owner?'#ff6d91':'#58dcff';X.fillRect(-12,-5,6,10);X.fillRect(6,-5,6,10);const ring=s.state==='defense'?'#76f2aa':s.state==='raising'?'#ffd166':s.state==='attack'?'#ff9b55':s.state==='capturing'?'#d9a7ff':s.state==='transfer'?'#ffcf70':null;if(ring){X.strokeStyle=ring;X.lineWidth=s.selected?3:2;X.beginPath();X.arc(0,0,11+(s.state==='raising'?Math.sin(s.age*8)*2:0),0,Math.PI*2);X.stroke()}if(s.burnFlash){X.fillStyle='#b7f7ff';X.beginPath();X.moveTo(-6,0);X.lineTo(-20,-4);X.lineTo(-20,4);X.fill()}X.restore();if(s.state==='raising'){const info=orbitInfo(s,P[s.owner]);X.globalAlpha=.22;X.strokeStyle='#ffd166';X.setLineDash([5,9]);X.beginPath();X.arc(P[s.owner].x,P[s.owner].y,Math.min(info.ra,370),0,Math.PI*2);X.stroke();X.setLineDash([]);X.globalAlpha=1;X.fillStyle='#ffe6a6';X.font='10px system-ui';X.fillText(`B${s.burnCount}/${s.raisePlan.length+1}`,s.x+12,s.y-12)}}
+function drawTransferGuide(){X.save();X.globalAlpha=.12;X.strokeStyle='#ffd166';X.lineWidth=2;X.setLineDash([6,12]);X.beginPath();X.moveTo(P[0].x+110,P[0].y);X.bezierCurveTo(470,110,730,590,P[1].x-110,P[1].y);X.stroke();X.setLineDash([]);X.restore()}
+function previewLaunch(){if(!drag)return;const p=P[0],dx=dragPoint.x-p.x,dy=dragPoint.y-p.y,len=Math.hypot(dx,dy),orbitR=clamp(88+len*.22,96,145),cross=(P[1].x-p.x)*dy-(P[1].y-p.y)*dx,dir=cross>=0?1:-1,start=p.pad;X.strokeStyle='#58dcffaa';X.lineWidth=2.5;X.setLineDash([3,9]);X.beginPath();for(let i=0;i<=50;i++){const u=i/50,e=u*u*(3-2*u),a=start+dir*(.12+1.05*e),r=p.r+7+(orbitR-p.r-7)*e,x=p.x+Math.cos(a)*r,y=p.y+Math.sin(a)*r;i?X.lineTo(x,y):X.moveTo(x,y)}X.stroke();X.setLineDash([]);X.globalAlpha=.55;X.beginPath();X.arc(p.x,p.y,orbitR,0,Math.PI*2);X.stroke();X.globalAlpha=1;note(`Parking orbit ${Math.round(orbitR)} · ${dir>0?'counter-clockwise':'clockwise'}`)}
+function draw(){X.setTransform(C.q*sc,0,0,C.q*sc,C.q*ox,C.q*oy);X.fillStyle='#050713';X.fillRect(0,0,W,H);X.fillStyle='#dfe9ff';for(const s of stars){X.globalAlpha=s[3];X.beginPath();X.arc(s[0],s[1],s[2],0,Math.PI*2);X.fill()}X.globalAlpha=1;drawTransferGuide();drawPlanet(P[0]);drawPlanet(P[1]);previewLaunch();for(const b of craft){X.strokeStyle=b.owner?'#ff6d9155':'#58dcff55';X.beginPath();for(let i=0;i<b.trail.length;i++){const t=b.trail[i];i?X.lineTo(t[0],t[1]):X.moveTo(t[0],t[1])}X.stroke();b.type==='rocket'?drawRocket(b):drawSat(b)}for(const q of debris){X.save();X.translate(q.x,q.y);X.rotate(q.ang);X.fillStyle='#8796af';X.fillRect(-6,-3,12,6);X.restore()}for(const f of particles){X.globalAlpha=clamp(f.life*2,0,1);X.fillStyle=f.col;X.beginPath();X.arc(f.x,f.y,f.r,0,Math.PI*2);X.fill()}X.globalAlpha=1;for(const b of beams){X.globalAlpha=b.life/.16;X.strokeStyle=b.col;X.lineWidth=2;X.beginPath();X.moveTo(b.x1,b.y1);X.lineTo(b.x2,b.y2);X.stroke()}X.globalAlpha=1}
 function loop(t){acc+=Math.min(.05,(t-last)/1000);last=t;while(acc>=DT){update();acc-=DT}draw();requestAnimationFrame(loop)}
-function hitOwnSat(pt){let best=null,d=23;for(const s of craft){if(s.dead||s.owner!==0||s.type!=='sat'||(s.state!=='defense'&&s.state!=='armed'))continue;const z=Math.hypot(pt.x-s.x,pt.y-s.y);if(z<d){d=z;best=s}}return best}
-C.onpointerdown=e=>{
- const q=world(e),sat=hitOwnSat(q);if(sat){armSatellite(sat);return}
- const p=P[0];if(!over&&Math.hypot(q.x-p.x,q.y-p.y)<p.r+36){drag=true;dragPoint=q;C.setPointerCapture(e.pointerId)}
-};
-C.onpointermove=e=>{if(drag)dragPoint=world(e)};
-C.onpointerup=e=>{if(!drag)return;drag=false;const q=world(e);if(Math.hypot(q.x-P[0].x,q.y-P[0].y)>18)launchFromDrag(0,q);note('Rocket committed to three-stage parking-orbit insertion')};
+function hitOwnSat(pt){let best=null,d=25;for(const s of craft){if(s.dead||s.owner!==0||s.type!=='sat'||!['defense','raising'].includes(s.state))continue;const z=Math.hypot(pt.x-s.x,pt.y-s.y);if(z<d){d=z;best=s}}return best}
+C.onpointerdown=e=>{const q=world(e),sat=hitOwnSat(q);if(sat){sat.state==='defense'?startRaising(sat):cancelRaising(sat);return}const p=P[0];if(!over&&Math.hypot(q.x-p.x,q.y-p.y)<p.r+36){drag=true;dragPoint=q;C.setPointerCapture(e.pointerId)}};
+C.onpointermove=e=>{if(drag)dragPoint=world(e)};C.onpointerup=e=>{if(!drag)return;drag=false;const q=world(e);if(Math.hypot(q.x-P[0].x,q.y-P[0].y)>18)launchFromDrag(0,q);note('Rocket committed to three-stage parking-orbit insertion')};
 helpBtn.onclick=()=>{const open=helpPanel.classList.toggle('open');helpBtn.textContent=open?'Close':'Help';helpBtn.setAttribute('aria-expanded',String(open))};
-resetBtn.onclick=()=>{craft=[];debris=[];particles=[];beams=[];P[0].h=P[1].h=100;aiTimer=2.4;over=false;helpPanel.classList.remove('open');helpBtn.textContent='Help';helpBtn.setAttribute('aria-expanded','false');note('New battle');hud()};
+resetBtn.onclick=()=>{craft=[];debris=[];particles=[];beams=[];P[0].h=P[1].h=100;aiTimer=2.4;over=false;helpPanel.classList.remove('open');helpBtn.textContent='Help';note('New battle');hud()};
 hud();requestAnimationFrame(loop);
 })();
 </script>
